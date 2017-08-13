@@ -1,8 +1,8 @@
 # coding: utf-8
 import threading
-import thread
+from multiprocessing import Process, Queue
 import time
-
+import os
 # """
 # When you use python manage.py runserver Django start two processes, one for the actual development server and other
 # to reload your application when the code change
@@ -61,10 +61,24 @@ def start_thread():
     thread2.start()
 
 
-class my_thread():
-    def __int__(self):
-        start_thread().clone()
+def my_process(process_name, queue_up, queue_down):
+    """my process"""
 
+    pid = os.getpid()
+    print "process_name:%s, process_id:%d" % (process_name, pid)
+    queue_up.put(pid)
+
+    while True:
+        # 进程接收和处理从其他进程发过来的消息
+        if queue_down.empty() is True:
+            # print "receive not msg"
+            pass
+        else:
+            msg_receive = queue_down.get()
+            print "process pid=%d receive msg: %s" % (pid, msg_receive)
+            queue_up.put_nowait(msg_receive)
+            print "put msg back"
+        time.sleep(0.5)
 
 if __name__ == '__main__':
     # 使用简单线程接口创建线程
@@ -80,13 +94,43 @@ if __name__ == '__main__':
 
     # 使用线程类创建和管理线程
 
-    str = 'test'
-    print str.upper()
     # print threading.current_thread
-    start_thread()
+    # start_thread()
     # start_thread()
     # a = my_thread()
     # b = my_thread()
-    while True:
 
+    msg_channal = {}
+    for count in range(0, 5, 1):
+        # 创建进程和通信通道
+        msg_queue = {}
+        queue_up = Queue()
+        queue_down = Queue()
+        msg_queue['queue_up'] = queue_up
+        msg_queue['queue_down'] = queue_down
+        print "queue_up_id:%d, queue_down_id:%d" % (id(queue_up), id(queue_down))
+        new_process = Process(target=my_process, args=('process_' + str(count), queue_up, queue_down))
+        new_process.start()
+        # time.sleep(1)
+        new_process_pid = queue_up.get()
+        print "process_%d pid:%d" % (count, new_process_pid)
+        msg_queue['pid'] = new_process_pid
+        msg_queue['handle'] = new_process
+        msg_channal['process_' + str(count)] = msg_queue
+
+    time.sleep(2)
+    for channal_key in msg_channal.keys():
+        print msg_channal[channal_key]
+    while True:
+        for channal_key in msg_channal.keys():
+            # 和进程通信
+            if msg_channal[channal_key]['handle'].is_alive() is False:
+                print "process pid=%d is not alive" % (msg_channal[channal_key]['pid'])
+                continue
+            msg_channal[channal_key]['queue_down'].put("msg for queue_%d" % (msg_channal[channal_key]['pid']))
+            time.sleep(0.5)
+            queue_channal = msg_channal[channal_key]['queue_up']
+            msg = queue_channal.get()
+            print "main process receive msg process pid=%d: %s" % (msg_channal[channal_key]['pid'], msg)
+            # time.sleep(1)
         pass
