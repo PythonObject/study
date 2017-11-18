@@ -1,4 +1,9 @@
 # coding: utf-8
+# file name: regular_expression.py
+# python version: 2.7
+# author: wu ming ming
+# description: study of regular expression
+
 """
 .                    匹配任意字符（不包括换行符）
 ^                    匹配开始位置，多行模式下匹配每一行的开始

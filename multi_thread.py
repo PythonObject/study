@@ -1,4 +1,10 @@
 # coding: utf-8
+# file name: multi_thread.py
+# python version: 2.7
+# author: wu ming ming
+# description: study of multi thread
+
+
 import threading
 from multiprocessing import Process, Queue
 import time

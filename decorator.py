@@ -1,10 +1,12 @@
 # coding: utf-8
 # file name: decorator.py
-# author: wumingming
+# python version: 2.7
+# author: wu ming ming
 # description: study of decorator
 
 import time
 import sys
+import functools
 # function decorator
 
 
@@ -63,7 +65,6 @@ class Foo(object):
     pass
 
 
-
 class Human(object):
     def __init__(self, func):
         self.name = None
@@ -84,6 +85,30 @@ class Human(object):
 def someone():
     pass
 
+
+def CatDecorator(cls):
+
+    @functools.wraps(cls)
+    class new_class:
+        def __init__(self, name):
+            cls.__init__(self, name)
+            self.sex = "male"
+
+        def set_sex(self, sex):
+            self.sex = sex
+
+        def get_set(self):
+            return self.sex
+
+    return new_class
+
+
+@CatDecorator
+class Cat(object):
+    def __init__(self, name):
+        self.name = name
+
+
 if __name__ == "__main__":
     # function decorator
     print "\n----------function decorator----------"
@@ -100,3 +125,7 @@ if __name__ == "__main__":
     Tim.breath()
     Tim.eat()
     Bob = someone()
+
+    Jack = Cat("Jack")
+    Jack.set_sex("femal")
+    print Jack.get_set()
